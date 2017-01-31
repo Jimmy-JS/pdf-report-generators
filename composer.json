@@ -1,0 +1,21 @@
+{
+    "name": "jimmyjs/pdf-report-generators",
+    "description": "",
+    "authors": [
+        {
+            "name": "Jimmy Setiawan",
+            "email": "jimmysetiawan.js@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "illuminate/support": "5.1.*",
+        "barryvdh/laravel-dompdf": "0.6.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jimmyjs\\PdfReportGenerators\\": "src/Jimmyjs/PdfReportGenerators"
+        }
+    },
+    "minimum-stability": "stable"
+}
