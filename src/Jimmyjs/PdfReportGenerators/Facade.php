@@ -2,10 +2,11 @@
 
 namespace Jimmyjs\PdfReportGenerators;
 
+use Illuminate\Support\Facades\Facade as IlluminateFacade;
 /**
  * @see \Jimmyjs\PdfReportGenerators\PdfReportGenerator
  */
-class Facade extends \Illuminate\Support\Facades\Facade
+class Facade extends IlluminateFacade
 {
     /**
      * Get the registered name of the component.
