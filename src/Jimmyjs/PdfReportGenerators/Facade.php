@@ -1,13 +1,11 @@
 <?php
 
-namespace JimmyJS\PdfReportGenerators\Facades;
-
-use Illuminate\Support\Facades\Facade;
+namespace Jimmyjs\PdfReportGenerators;
 
 /**
- * @see \JimmyJS\Shortener
+ * @see \Jimmyjs\PdfReportGenerators\PdfReportGenerator
  */
-class PdfReportGenerator extends Facade
+class Facade extends \Illuminate\Support\Facades\Facade
 {
     /**
      * Get the registered name of the component.

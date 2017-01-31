@@ -1,6 +1,6 @@
 <?php
 
-namespace JimmyJS\PdfReportGenerators;
+namespace Jimmyjs\PdfReportGenerators;
 
 use PDF;
 
