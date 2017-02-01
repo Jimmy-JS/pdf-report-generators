@@ -1,7 +1,7 @@
 	<style>
 		.wrapper {
 			margin: -20px;
-			padding: 0 15px;
+			padding: 0px 15px 20px;
 		}
 	    .middle {
 	        text-align: center;
@@ -176,8 +176,8 @@
 	</div>
     <script type="text/php">
         if ( isset($pdf) ) {
-        	$pdf->page_text(510, 810, "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10, array(0,0,0));
-            $pdf->page_text(30, 810, "Date Printed: " . date('d M Y H:i:s'), null, 10, array(0,0,0));
+        	$pdf->page_text(510, 815, "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10, array(0,0,0));
+            $pdf->page_text(30, 815, "Date Printed: " . date('d M Y H:i:s'), null, 10, array(0,0,0));
         }
     </script>
 </body>
