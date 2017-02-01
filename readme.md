@@ -12,11 +12,15 @@ Then, add the ServiceProvider to the providers array in config/app.php
 
     Jimmyjs\PdfReportGenerators\ServiceProvider::class,
 
-Also, you can use `PdfReportGenerator` facade for shorter code that already registered as an alias for `Jimmyjs\PdfReportGenerators\Facade` class.
-
 ## Usage
 This package is make use of `chunk` method (Eloquent / Query Builder) so it can handle big data without memory exhausted.
+
+Also, You can use `PdfReportGenerator` facade for shorter code that already registered as an alias for `Jimmyjs\PdfReportGenerators\Facade` class.
+
+### Example Code
 ```php
+use PdfReportGenerator;
+
 public function displayReport(Request $request) {
 	// Retrieve any filters
 	$fromDate = $request->input('from_date');
@@ -33,7 +37,7 @@ public function displayReport(Request $request) {
 	];
 
 	// Do some querying..
-	$queryBuilder = User::select(['name', 'total_point', 'balance', 'registered_at'])
+	$queryBuilder = User::select(['name', 'balance', 'registered_at'])
 						->whereBetween('registered_at', [$fromDate, $toDate])
 						->orderBy($sortBy);
 
@@ -41,37 +45,42 @@ public function displayReport(Request $request) {
 	$columns = [
 		'Name' => 'name',
 		'Registered At' => 'registered_at',
-		'Total Point' => 'total_point'
-		'Total Balance' => 'balance'
+		'Total Balance' => 'balance',
+		'Status' => 'noDataFromDBSoAnythingHereWillBeOkay'
 	];
 
-	// Generate Report with flexibility to manipulate column class even manipulate column value (using Carbon, etc).
+	/*
+		Generate Report with flexibility to manipulate column class even manipulate column value (using Carbon, etc).
+
+		- of()         : Init the title, meta (filters description to show), query, column (to be shown)
+		- editColumn() : To Change column class or manipulate its data (format data Carbon or any other action do you want)
+		- showTotal()  : Used to sum all value on specified column on the last table (except using groupBy method). 'point' is a type for displaying total with a thousand separator
+		- groupBy()    : Show total of value on specific group. Used with showTotal() enabled.
+		- limit()      : Limit record to be showed
+		- make()       : Will producing DomPDF instance so you could do any other DomPDF method such as stream() or download()
+	*/
 	return PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
 				->editColumn('Registered At', [
 					'data' => function($result) {
 						return $result->registered_at->format('d M Y');
 					}
 				])
-				->editColumn('Total Point', [
-					'class' => 'right', 
-					'data' => function($result) {
-						return thousandSeparator($result->total_point);
-					}
-				])
 				->editColumn('Total Balance', [
 					'class' => 'right bold', 
 					'data' => function($result) {
-						return 'USD ' . thousandSeparator($result->balance);
+						return thousandSeparator($result->balance);
 					}
 				])
-				// showTotal is used to sum all value on specified column on the last table (except using groupBy method). 'point' is a type for displaying total with a thousand separator
+				->editColumn('Status', [
+					'class' => 'right bold', 
+					'data' => function($result) {
+						return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
+					}
+				])
 				->showTotal([
-					'Total Point' => 'point',
 					'Total Balance' => 'point'
 				])
-				// Limit your record
 				->limit(20)
-				// make method will producing DomPDF instance so you could do any other DomPDF method such as stream() or download()
 				->make()
 				->stream(); // or download() to download pdf
 }
@@ -79,3 +88,51 @@ public function displayReport(Request $request) {
 
 ### Output Report
 ![Output Report with Grand Total](https://raw.githubusercontent.com/Jimmy-JS/pdf-report-generators/master/screenshots/report-with-total.png)
+
+
+### Example Code With Group By
+Or, you can total all records by group using `groupBy` method
+```php
+	...
+	// Do some querying..
+	$queryBuilder = User::select(['name', 'balance', 'registered_at'])
+						->whereBetween('registered_at', [$fromDate, $toDate])
+						->orderBy('registered_at', 'ASC'); // You should sort groupBy column to use groupBy() Method
+
+	// Set Column to be displayed
+	$columns = [
+		'Registered At' => 'registered_at',
+		'Name' => 'name',
+		'Total Balance' => 'balance',
+		'Status' => 'noDataFromDBSoAnythingHereWillBeOkay'
+	];
+	return PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
+				->editColumn('Registered At', [
+					'data' => function($result) {
+						return $result->registered_at->format('d M Y');
+					}
+				])
+				->editColumn('Total Balance', [
+					'class' => 'right bold', 
+					'data' => function($result) {
+						return thousandSeparator($result->balance);
+					}
+				])
+				->editColumn('Status', [
+					'class' => 'right bold', 
+					'data' => function($result) {
+						return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
+					}
+				])
+				->groupBy('Registered At')
+				->showTotal([
+					'Total Balance' => 'point'
+				])
+				->make()
+				->stream(); // or download() to download pdf
+```
+
+PLEASE TAKE NOTE TO SORT GROUPBY COLUMN VIA QUERY FIRST TO USE THIS GROUP BY METHOD.
+
+### Output Report With Group By
+![Output Report with Group By Grand Total](https://raw.githubusercontent.com/Jimmy-JS/pdf-report-generators/master/screenshots/report-with-group-by.png)
