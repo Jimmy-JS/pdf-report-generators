@@ -74,7 +74,7 @@ class PdfReportGenerator
 		$showTotalColumns = $this->showTotalColumns;
 
 		$pdf = PDF::loadView('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'extraOptColumns', 'showTotalColumns', 'query', 'limit', 'groupBy'));
-		$pdf->setPaper('a4');
+		$pdf->setPaper($this->paper);
 
 		return $pdf;
 	}

@@ -1,6 +1,7 @@
 {
     "name": "jimmyjs/pdf-report-generators",
-    "description": "",
+    "description": "Rapidly Generate Simple Pdf Report on Laravel 5 (Using Barryvdh/DomPdf)",
+    "license": "MIT",
     "authors": [
         {
             "name": "Jimmy Setiawan",
@@ -16,6 +17,5 @@
         "psr-4": {
             "Jimmyjs\\PdfReportGenerators\\": "src/Jimmyjs/PdfReportGenerators"
         }
-    },
-    "minimum-stability": "stable"
+    }
 }
