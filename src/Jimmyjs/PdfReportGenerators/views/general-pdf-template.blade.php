@@ -39,6 +39,9 @@
 		table .right {
 			text-align: right;
 		}
+		table .bold {
+			font-weight: 600;
+		}
 		.bg-black {
 			background-color: #000;
 		}

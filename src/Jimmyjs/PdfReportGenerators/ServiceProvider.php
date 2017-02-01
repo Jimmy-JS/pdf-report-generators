@@ -23,11 +23,21 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->app->singleton('pdf-report-generator', function ($app) {
             return new PdfReportGenerator($app);
         });
+
+        $this->registerAliases();
 	}
 
 	public function boot()
 	{
 		$this->loadViewsFrom(__DIR__ . '/views', 'pdf-report-generators');
+	}
+
+	protected function registerAliases()
+	{
+	    if (class_exists('Illuminate\Foundation\AliasLoader')) {
+	        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+	        $loader->alias('PdfReportGenerator', \Jimmyjs\PdfReportGenerators\Facade::class);
+	    }
 	}
 
 	/**
