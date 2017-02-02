@@ -132,7 +132,58 @@ Or, you can total all records by group using `groupBy` method
 				->stream(); // or download() to download pdf
 ```
 
-PLEASE TAKE NOTE TO SORT GROUPBY COLUMN VIA QUERY FIRST TO USE THIS GROUP BY METHOD.
+**PLEASE TAKE NOTE TO SORT GROUPBY COLUMN VIA QUERY FIRST TO USE THIS GROUP BY METHOD.**
 
 ### Output Report With Group By
 ![Output Report with Group By Grand Total](https://raw.githubusercontent.com/Jimmy-JS/pdf-report-generators/master/screenshots/report-with-group-by.png)
+
+
+## Other Method
+
+### 1. setPaper($paper = 'a4')
+**Description**: Set Paper Size
+
+**Params**: 
+* $paper (Default: 'a4')
+
+**Usage:**
+```php
+	PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
+					->setPaper('a6')
+					->make();
+```
+
+### 2. setCss(Array $styles)
+**Description**: Set a new custom styles with given selector and style to apply
+
+**Params**: 
+* Array $styles (Key: $selector, Value: $style)
+
+**Usage:**
+```php
+	PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
+					->editColumn('Registered At', [
+						'class' => 'right bolder italic-red'
+						'data' => function($result) {
+							return $result->registered_at->format('d M Y');
+						}
+					])
+					->setCss([
+						'.bolder' => 'font-weight: 800;',
+						'.italic-red' => 'color: red;font-style: italic;'
+					])
+					->make();
+```
+
+### 3. setOrientation($orientation = 'portrait')
+**Description**: Set Orientation to Landscape or Portrait
+
+**Params**: 
+* $orientation (Default: 'portrait')
+
+**Usage:**
+```php
+	PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
+					->setOrientation('landscape')
+					->make();
+```

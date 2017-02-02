@@ -52,6 +52,11 @@
 			.f-white {
 				color: #fff;
 			}
+			@foreach ($styles as $style)
+			{{ $style['selector'] }} {
+				{{ $style['style'] }}
+			}
+			@endforeach
 		</style>
 	</head>
 	<body>
@@ -182,10 +187,17 @@
 			</div>
 		</div>
 	    <script type="text/php">
+	    	@if (strtolower($orientation) == 'portrait')
 	        if ( isset($pdf) ) {
-	        	$pdf->page_text(510, 815, "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10, array(0,0,0));
-	            $pdf->page_text(30, 815, "Date Printed: " . date('d M Y H:i:s'), null, 10, array(0,0,0));
+	            $pdf->page_text(30, ($pdf->get_height() - 26.89), "Date Printed: " . date('d M Y H:i:s'), null, 10);
+	        	$pdf->page_text(($pdf->get_width() - 84), ($pdf->get_height() - 26.89), "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10);
 	        }
+		    @elseif (strtolower($orientation) == 'landscape')
+		    if ( isset($pdf) ) {
+		        $pdf->page_text(30, ($pdf->get_height() - 26.89), "Date Printed: " . date('d M Y H:i:s'), null, 10);
+		    	$pdf->page_text(($pdf->get_width() - 84), ($pdf->get_height() - 26.89), "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10);
+		    }
+		    @endif
 	    </script>
 	</body>
 </html>
