@@ -115,35 +115,37 @@
 							<?php 
 								if ($limit != null && $ctr == $limit + 1) return false;
 								// Set Grand Total
-								if (isClosure($columns[$groupBy])) {
-			    					$thisGroupByData = $columns[$groupBy]($result);
-			    				} else {
-			    					$thisGroupByData = $result->$columns[$groupBy];
-			    				}
-			    				if ($groupBy != null && $thisGroupByData != $currentGroupByData) {
-			    					if ($showTotalColumns != [] && $currentGroupByData != null) {
-			    						echo '<tr class="bg-black f-white">
-			    							<td><b>Grand Total</b></td>';
-			    							foreach ($columns as $colName => $colData) {
-			    								if (array_key_exists($colName, $showTotalColumns)) {
-			    									if ($showTotalColumns[$colName] == 'point') {
-			    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
-			    									} elseif ($showTotalColumns[$colName] == 'idr') {
-			    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
-			    									}
-			    								} else {
-			    									echo '<td></td>';
-			    								}
-			    							}
-			    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
-			    					}
+								if ($groupBy != null) {
+									if (isClosure($columns[$groupBy])) {
+				    					$thisGroupByData = $columns[$groupBy]($result);
+				    				} else {
+				    					$thisGroupByData = $result->$columns[$groupBy];
+				    				}
+				    				if ($thisGroupByData != $currentGroupByData) {
+				    					if ($showTotalColumns != [] && $currentGroupByData != null) {
+				    						echo '<tr class="bg-black f-white">
+				    							<td><b>Grand Total</b></td>';
+				    							foreach ($columns as $colName => $colData) {
+				    								if (array_key_exists($colName, $showTotalColumns)) {
+				    									if ($showTotalColumns[$colName] == 'point') {
+				    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
+				    									} elseif ($showTotalColumns[$colName] == 'idr') {
+				    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
+				    									}
+				    								} else {
+				    									echo '<td></td>';
+				    								}
+				    							}
+				    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
+				    					}
 
-			    					$no = 1;
-			    					foreach ($showTotalColumns as $showTotalColumn => $type) {
-			    						$total[$showTotalColumn] = 0;
-			    					}
-			    					$currentGroupByData = $thisGroupByData;
-			    				}
+				    					$no = 1;
+				    					foreach ($showTotalColumns as $showTotalColumn => $type) {
+				    						$total[$showTotalColumn] = 0;
+				    					}
+				    					$currentGroupByData = $thisGroupByData;
+				    				}
+				    			}
 							?>
 				    		<tr align="center" class="{{ ($no % 2 == 0) ? 'even' : 'odd' }}">
 				    			<td class="left">{{ $no }}</td>
