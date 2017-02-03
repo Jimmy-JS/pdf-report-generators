@@ -46,14 +46,16 @@ public function displayReport(Request $request) {
 		'Name' => 'name',
 		'Registered At' => 'registered_at',
 		'Total Balance' => 'balance',
-		'Status' => 'noDataFromDBSoAnythingHereWillBeOkay'
+		'Status' => function($result) { // You can do if statement or any action do you want inside this closure
+			return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
+		}
 	];
 
 	/*
 		Generate Report with flexibility to manipulate column class even manipulate column value (using Carbon, etc).
 
 		- of()         : Init the title, meta (filters description to show), query, column (to be shown)
-		- editColumn() : To Change column class or manipulate its data (format data Carbon or any other action do you want)
+		- editColumn() : To Change column class or manipulate its data for displaying to report
 		- showTotal()  : Used to sum all value on specified column on the last table (except using groupBy method). 'point' is a type for displaying total with a thousand separator
 		- groupBy()    : Show total of value on specific group. Used with showTotal() enabled.
 		- limit()      : Limit record to be showed
@@ -61,21 +63,18 @@ public function displayReport(Request $request) {
 	*/
 	return PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
 				->editColumn('Registered At', [
-					'data' => function($result) {
+					'displayAs' => function($result) {
 						return $result->registered_at->format('d M Y');
 					}
 				])
 				->editColumn('Total Balance', [
 					'class' => 'right bold', 
-					'data' => function($result) {
+					'displayAs' => function($result) {
 						return thousandSeparator($result->balance);
 					}
 				])
 				->editColumn('Status', [
-					'class' => 'right bold', 
-					'data' => function($result) {
-						return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
-					}
+					'class' => 'right bold'
 				])
 				->showTotal([
 					'Total Balance' => 'point'
@@ -86,6 +85,49 @@ public function displayReport(Request $request) {
 }
 ```
 
+### Note 
+```php
+$columns = [
+	'Name' => 'name',
+	'Registered At' => 'registered_at',
+	'Total Balance' => 'balance',
+	'Status' => function($result) { // You can do if statement or any action do you want inside this closure
+		return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
+	}
+];
+```
+Will produce a same result with:
+```php
+$columns = [
+	'Name' => function($result) {
+		return $result->name;
+	},
+	'Registered At' => function($result) {
+		return $result->registered_at;
+	},
+	'Total Balance' => function($result) {
+		return $result->balance;
+	},
+	'Status' => function($result) { // You can do if statement or any action do you want inside this closure
+		return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
+	}
+];
+```
+So you can do some **eager loading** like:
+
+```php
+$post = Post::with('comment')->where('active', 1);
+
+$columns = [
+	'Post Title' => function($result) {
+		return $result->title;
+	},
+	'Slug' => 'slug',
+	'Top Comment' => function($result) {
+		return $result->comment->body;
+	}
+];
+```
 ### Output Report
 ![Output Report with Grand Total](https://raw.githubusercontent.com/Jimmy-JS/pdf-report-generators/master/screenshots/report-with-total.png)
 
@@ -104,25 +146,24 @@ Or, you can total all records by group using `groupBy` method
 		'Registered At' => 'registered_at',
 		'Name' => 'name',
 		'Total Balance' => 'balance',
-		'Status' => 'noDataFromDBSoAnythingHereWillBeOkay'
+		'Status' => function($result) { // You can do if statement or any action do you want inside this closure
+			return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
+		}
 	];
 	return PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
 				->editColumn('Registered At', [
-					'data' => function($result) {
+					'displayAs' => function($result) {
 						return $result->registered_at->format('d M Y');
 					}
 				])
 				->editColumn('Total Balance', [
 					'class' => 'right bold', 
-					'data' => function($result) {
+					'displayAs' => function($result) {
 						return thousandSeparator($result->balance);
 					}
 				])
 				->editColumn('Status', [
-					'class' => 'right bold', 
-					'data' => function($result) {
-						return ($result->balance > 100000) ? 'Rich Man' : 'Normal Guy';
-					}
+					'class' => 'right bold',
 				])
 				->groupBy('Registered At')
 				->showTotal([
@@ -164,9 +205,6 @@ Or, you can total all records by group using `groupBy` method
 	PdfReportGenerator::of($title, $meta, $queryBuilder, $columns)
 					->editColumn('Registered At', [
 						'class' => 'right bolder italic-red'
-						'data' => function($result) {
-							return $result->registered_at->format('d M Y');
-						}
 					])
 					->setCss([
 						'.bolder' => 'font-weight: 800;',

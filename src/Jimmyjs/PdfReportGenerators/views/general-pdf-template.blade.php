@@ -63,7 +63,7 @@
 		<?php 
 		$ctr = 1;
 		$no = 1;
-		$groupByData = null;
+		$currentGroupByData = null;
 		$total = [];
 
 		foreach ($showTotalColumns as $column => $type) {
@@ -80,12 +80,12 @@
 						<?php $metaCtr = 0; ?>
 						@foreach($headers['meta'] as $name => $value)
 							@if ($metaCtr % 2 == 0)
-								<tr>
+							<tr>
 							@endif
-							<td style="color:#808080;">{{ $name }}</td>
-							<td>: {{ $value }}</td>
+								<td style="color:#808080;">{{ $name }}</td>
+								<td>: {{ $value }}</td>
 							@if ($metaCtr % 2 == 1)
-								</tr>
+							</tr>
 							@endif
 							<?php $metaCtr++; ?>
 						@endforeach
@@ -99,8 +99,8 @@
 				    		<tr>
 				    			<th class="left">No</th>
 				    			@foreach ($columns as $colName => $colData)
-				    				@if (array_key_exists($colName, $extraOptColumns))
-				    					<th class="{{ isset($extraOptColumns[$colName]['class']) ? $extraOptColumns[$colName]['class'] : 'left' }}">{{ $colName }}</th>
+				    				@if (array_key_exists($colName, $editColumns))
+				    					<th class="{{ isset($editColumns[$colName]['class']) ? $editColumns[$colName]['class'] : 'left' }}">{{ $colName }}</th>
 				    				@else
 					    				<th class="left">{{ $colName }}</th>
 				    				@endif
@@ -108,13 +108,20 @@
 				    		</tr>
 			    		</thead>
 			    		<?php
-						$query->chunk(300, function($results) use(&$ctr, &$no, &$total, &$groupByData, $headers, $columns, $limit, $extraOptColumns, $showTotalColumns, $groupBy) {
+			    		$chunkRecordCount = ($limit == null || $limit > 300) ? 300 : $limit;
+						$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupBy) {
 						?>
 			    		@foreach($results as $result)
 							<?php 
 								if ($limit != null && $ctr == $limit + 1) return false;
-			    				if ($groupBy != null && $result->$columns[$groupBy] != $groupByData) {
-			    					if ($showTotalColumns != [] && $groupByData != null) {
+								// Set Grand Total
+								if (isClosure($columns[$groupBy])) {
+			    					$thisGroupByData = $columns[$groupBy]($result);
+			    				} else {
+			    					$thisGroupByData = $result->$columns[$groupBy];
+			    				}
+			    				if ($groupBy != null && $thisGroupByData != $currentGroupByData) {
+			    					if ($showTotalColumns != [] && $currentGroupByData != null) {
 			    						echo '<tr class="bg-black f-white">
 			    							<td><b>Grand Total</b></td>';
 			    							foreach ($columns as $colName => $colData) {
@@ -135,7 +142,7 @@
 			    					foreach ($showTotalColumns as $showTotalColumn => $type) {
 			    						$total[$showTotalColumn] = 0;
 			    					}
-			    					$groupByData = $result->$columns[$groupBy];
+			    					$currentGroupByData = $thisGroupByData;
 			    				}
 							?>
 				    		<tr align="center" class="{{ ($no % 2 == 0) ? 'even' : 'odd' }}">
@@ -143,24 +150,30 @@
 				    			@foreach ($columns as $colName => $colData)
 				    				<?php 
 					    				$class = 'left';
-					    				$colValue = $result->$colData;
-					    				if (array_key_exists($colName, $extraOptColumns)) {
-					    					if (isset($extraOptColumns[$colName]['class'])) {
-					    						$class = $extraOptColumns[$colName]['class'];
+					    				// Check Edit Column to manipulate class & Data
+					    				if (isClosure($colData)) {
+					    					$generatedColData = $colData($result);
+					    				} else {
+					    					$generatedColData = $result->$colData;
+					    				}
+					    				$displayedColValue = $generatedColData;
+					    				if (array_key_exists($colName, $editColumns)) {
+					    					if (isset($editColumns[$colName]['class'])) {
+					    						$class = $editColumns[$colName]['class'];
 					    					} 
 
-					    					if (isset($extraOptColumns[$colName]['data']) && isClosure($extraOptColumns[$colName]['data'])) {
-					    						$colValue = $extraOptColumns[$colName]['data']($result);
-					    					} elseif (isset($extraOptColumns[$colName]['data']) && !isClosure($extraOptColumns[$colName]['data'])) {
-					    						$colValue = $extraOptColumns[$colName]['data'];
+					    					if (isset($editColumns[$colName]['displayAs']) && isClosure($editColumns[$colName]['displayAs'])) {
+					    						$displayedColValue = $editColumns[$colName]['displayAs']($result);
+					    					} elseif (isset($editColumns[$colName]['displayAs']) && !isClosure($editColumns[$colName]['displayAs'])) {
+					    						$displayedColValue = $editColumns[$colName]['displayAs'];
 					    					}
 					    				}
 
 					    				if (array_key_exists($colName, $showTotalColumns)) {
-					    					$total[$colName] += $result->$colData;
+					    					$total[$colName] += $generatedColData;
 					    				}
 				    				?>
-				    				<td class="{{ $class }}">{{ $colValue }}</td>
+				    				<td class="{{ $class }}">{{ $displayedColValue }}</td>
 				    			@endforeach
 				    		</tr>
 			    			<?php $ctr++; $no++; ?>

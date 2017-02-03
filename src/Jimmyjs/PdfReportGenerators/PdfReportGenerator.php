@@ -13,7 +13,7 @@ class PdfReportGenerator
 	private $groupBy = null;
 	private $paper = 'a4';
 	private $orientation = 'portrait';
-	private $extraOptColumns = [];
+	private $editColumns = [];
 	private $showTotalColumns = [];
 	private $styles = [];
 
@@ -39,7 +39,7 @@ class PdfReportGenerator
 
 	public function editColumn($columnName, Array $option)
 	{
-		$this->extraOptColumns[$columnName] = $option;
+		$this->editColumns[$columnName] = $option;
 
 		return $this;
 	}
@@ -92,11 +92,11 @@ class PdfReportGenerator
 		$limit = $this->limit;
 		$groupBy = $this->groupBy;
 		$orientation = $this->orientation;
-		$extraOptColumns = $this->extraOptColumns;
+		$editColumns = $this->editColumns;
 		$showTotalColumns = $this->showTotalColumns;
 		$styles = $this->styles;
 
-		$pdf = PDF::loadView('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'extraOptColumns', 'showTotalColumns', 'styles', 'query', 'limit', 'groupBy', 'orientation'));
+		$pdf = PDF::loadView('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'editColumns', 'showTotalColumns', 'styles', 'query', 'limit', 'groupBy', 'orientation'));
 		$pdf->setPaper($this->paper, $orientation);
 
 		return $pdf;
