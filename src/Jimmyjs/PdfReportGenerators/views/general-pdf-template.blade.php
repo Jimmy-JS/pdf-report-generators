@@ -63,8 +63,9 @@
 		<?php 
 		$ctr = 1;
 		$no = 1;
-		$currentGroupByData = null;
+		$currentGroupByData = [];
 		$total = [];
+		$isOnSameGroup = true;
 
 		foreach ($showTotalColumns as $column => $type) {
 			$total[$column] = 0;
@@ -109,42 +110,52 @@
 			    		</thead>
 			    		<?php
 			    		$chunkRecordCount = ($limit == null || $limit > 300) ? 300 : $limit;
-						$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupBy) {
+						$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr) {
 						?>
 			    		@foreach($results as $result)
 							<?php 
 								if ($limit != null && $ctr == $limit + 1) return false;
-								// Set Grand Total
-								if ($groupBy != null) {
-									if (isClosure($columns[$groupBy])) {
-				    					$thisGroupByData = $columns[$groupBy]($result);
-				    				} else {
-				    					$thisGroupByData = $result->$columns[$groupBy];
-				    				}
-				    				if ($thisGroupByData != $currentGroupByData) {
-				    					if ($showTotalColumns != [] && $currentGroupByData != null) {
-				    						echo '<tr class="bg-black f-white">
-				    							<td><b>Grand Total</b></td>';
-				    							foreach ($columns as $colName => $colData) {
-				    								if (array_key_exists($colName, $showTotalColumns)) {
-				    									if ($showTotalColumns[$colName] == 'point') {
-				    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
-				    									} elseif ($showTotalColumns[$colName] == 'idr') {
-				    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
-				    									}
-				    								} else {
-				    									echo '<td></td>';
-				    								}
-				    							}
-				    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
-				    					}
+								if ($groupByArr != []) {
+									$isOnSameGroup = true;
+									foreach ($groupByArr as $groupBy) {
+										if (isClosure($columns[$groupBy])) {
+					    					$thisGroupByData[$groupBy] = $columns[$groupBy]($result);
+					    				} else {
+					    					$thisGroupByData[$groupBy] = $result->$columns[$groupBy];
+					    				}
 
-				    					$no = 1;
-				    					foreach ($showTotalColumns as $showTotalColumn => $type) {
-				    						$total[$showTotalColumn] = 0;
-				    					}
-				    					$currentGroupByData = $thisGroupByData;
-				    				}
+					    				if (isset($currentGroupByData[$groupBy])) {
+					    					if ($thisGroupByData[$groupBy] != $currentGroupByData[$groupBy]) {
+					    						$isOnSameGroup = false;
+					    					}
+					    				}
+
+					    				$currentGroupByData[$groupBy] = $thisGroupByData[$groupBy];
+					    			}
+
+					    			if ($isOnSameGroup === false) {
+			    						echo '<tr class="bg-black f-white">
+			    							<td><b>Grand Total</b></td>';
+			    							foreach ($columns as $colName => $colData) {
+			    								if (array_key_exists($colName, $showTotalColumns)) {
+			    									if ($showTotalColumns[$colName] == 'point') {
+			    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
+			    									} elseif ($showTotalColumns[$colName] == 'idr') {
+			    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
+			    									}
+			    								} else {
+			    									echo '<td></td>';
+			    								}
+			    							}
+			    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
+
+										// Reset No, Reset Grand Total
+			    						$no = 1;
+			    						foreach ($showTotalColumns as $showTotalColumn => $type) {
+			    							$total[$showTotalColumn] = 0;
+			    						}
+			    						$isOnSameGroup = true;
+			    					}
 				    			}
 							?>
 				    		<tr align="center" class="{{ ($no % 2 == 0) ? 'even' : 'odd' }}">

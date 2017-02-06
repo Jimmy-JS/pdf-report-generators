@@ -10,7 +10,7 @@ class PdfReportGenerator
 	private $columns;
 	private $query;
 	private $limit = null;
-	private $groupBy = null;
+	private $groupByArr = [];
 	private $paper = 'a4';
 	private $orientation = 'portrait';
 	private $editColumns = [];
@@ -53,7 +53,11 @@ class PdfReportGenerator
 
 	public function groupBy($column)
 	{
-		$this->groupBy = $column;
+		if (is_array($column)) {
+			$this->groupByArr = $column;
+		} else {
+			array_push($this->groupByArr, $column);
+		}
 
 		return $this;
 	}
@@ -90,13 +94,13 @@ class PdfReportGenerator
 		$query = $this->query;
 		$columns = $this->columns;
 		$limit = $this->limit;
-		$groupBy = $this->groupBy;
+		$groupByArr = $this->groupByArr;
 		$orientation = $this->orientation;
 		$editColumns = $this->editColumns;
 		$showTotalColumns = $this->showTotalColumns;
 		$styles = $this->styles;
 
-		$pdf = PDF::loadView('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'editColumns', 'showTotalColumns', 'styles', 'query', 'limit', 'groupBy', 'orientation'));
+		$pdf = PDF::loadView('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'editColumns', 'showTotalColumns', 'styles', 'query', 'limit', 'groupByArr', 'orientation'));
 		$pdf->setPaper($this->paper, $orientation);
 
 		return $pdf;
