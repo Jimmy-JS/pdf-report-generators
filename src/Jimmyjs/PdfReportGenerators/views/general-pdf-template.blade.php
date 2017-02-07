@@ -70,6 +70,17 @@
 		foreach ($showTotalColumns as $column => $type) {
 			$total[$column] = 0;
 		}
+
+		if ($showTotalColumns != []) {
+			$grandTotalSkip = 1;
+			foreach ($columns as $colName => $colData) {
+				if (!array_key_exists($colName, $showTotalColumns)) {
+					$grandTotalSkip++;
+				} else {
+					break;
+				}
+			}
+		}
 		?>
 		<div class="wrapper">
 		    <div class="head">
@@ -83,8 +94,7 @@
 							@if ($metaCtr % 2 == 0)
 							<tr>
 							@endif
-								<td style="color:#808080;">{{ $name }}</td>
-								<td>: {{ $value }}</td>
+								<td><span style="color:#808080;">{{ $name }}</span>: {{ $value }}</td>
 							@if ($metaCtr % 2 == 1)
 							</tr>
 							@endif
@@ -110,7 +120,7 @@
 			    		</thead>
 			    		<?php
 			    		$chunkRecordCount = ($limit == null || $limit > 300) ? 300 : $limit;
-						$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr) {
+						$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $grandTotalSkip, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr) {
 						?>
 			    		@foreach($results as $result)
 							<?php 
@@ -135,7 +145,8 @@
 
 					    			if ($isOnSameGroup === false) {
 			    						echo '<tr class="bg-black f-white">
-			    							<td><b>Grand Total</b></td>';
+			    							<td colspan="' . $grandTotalSkip . '"><b>Grand Total</b></td>';
+											$dataFound = false;
 			    							foreach ($columns as $colName => $colData) {
 			    								if (array_key_exists($colName, $showTotalColumns)) {
 			    									if ($showTotalColumns[$colName] == 'point') {
@@ -143,8 +154,11 @@
 			    									} elseif ($showTotalColumns[$colName] == 'idr') {
 			    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
 			    									}
+			    									$dataFound = true;
 			    								} else {
-			    									echo '<td></td>';
+			    									if ($dataFound) {
+				    									echo '<td></td>';
+				    								}
 			    								}
 			    							}
 			    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
@@ -194,16 +208,20 @@
 						<?php }); ?>
 						@if ($showTotalColumns != [] && $ctr > 1)
 							<tr class="bg-black f-white">
-								<td><b>Grand Total</b></td> {{-- For Number --}}
+								<td colspan="{{ $grandTotalSkip }}"><b>Grand Total</b></td> {{-- For Number --}}
+								<?php $dataFound = false; ?>
 								@foreach ($columns as $colName => $colData)
 									@if (array_key_exists($colName, $showTotalColumns))
+										<?php $dataFound = true; ?>
 										@if ($showTotalColumns[$colName] == 'point')
 											<td class="right"><b>{{ thousandSeparator($total[$colName]) }}</b></td>
 										@elseif ($showTotalColumns[$colName] == 'idr')
 											<td class="right"><b>IDR {{ thousandSeparator($total[$colName]) }}</b></td>
 										@endif
 									@else
-										<td></td>
+										@if ($dataFound)
+											<td></td>
+										@endif
 									@endif
 								@endforeach
 							</tr>
