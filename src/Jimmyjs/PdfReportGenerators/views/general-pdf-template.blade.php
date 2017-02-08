@@ -66,13 +66,13 @@
 		$currentGroupByData = [];
 		$total = [];
 		$isOnSameGroup = true;
+		$grandTotalSkip = 1;
 
 		foreach ($showTotalColumns as $column => $type) {
 			$total[$column] = 0;
 		}
 
 		if ($showTotalColumns != []) {
-			$grandTotalSkip = 1;
 			foreach ($columns as $colName => $colData) {
 				if (!array_key_exists($colName, $showTotalColumns)) {
 					$grandTotalSkip++;
