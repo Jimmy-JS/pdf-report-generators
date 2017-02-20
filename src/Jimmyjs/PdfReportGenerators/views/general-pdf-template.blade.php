@@ -3,33 +3,33 @@
 	<head>
 		<meta charset="UTF-8">
 		<style>
+			body {
+			    font-family: Arial, Helvetica, sans-serif;
+			}
 			.wrapper {
 				margin: 0 -20px 0;
 				padding: 0 15px;
 			}
 		    .middle {
 		        text-align: center;
-			    font-family: Arial, Helvetica, sans-serif;;
+		    }
+		    .title {
 			    font-size: 35px;
 		    }
 		    .pb-10 {
 		    	padding-bottom: 10px;
 		    }
-		    .head {
+		    .pb-5 {
 		    	padding-bottom: 5px;
 		    }
 		    .head-content{
 		    	padding-bottom: 4px;
 		    	border-style: none none ridge none;
 		    	font-size: 18px;
-		    	font-family: Arial, Helvetica, sans-serif;
 		    }
-		    .table{
+		    table.table {
 		    	font-size: 13px;
-		    	font-family: Arial;
-		    }
-		    table {
-		    	border-collapse:collapse;
+		    	border-collapse: collapse;
 		    }
 			.page-break {
 		        page-break-after: always;
@@ -84,8 +84,8 @@
 		}
 		?>
 		<div class="wrapper">
-		    <div class="head">
-			    <div class="middle pb-10">
+		    <div class="pb-5">
+			    <div class="middle pb-10 title">
 			        {{ $headers['title'] }}
 			    </div>
 				<div class="head-content">
@@ -105,130 +105,128 @@
 				</div>
 		    </div>
 		    <div class="content">
-			    <div class="table">
-			    	<table width="100%">
-			    		<thead>
-				    		<tr>
-				    			<th class="left">No</th>
-				    			@foreach ($columns as $colName => $colData)
-				    				@if (array_key_exists($colName, $editColumns))
-				    					<th class="{{ isset($editColumns[$colName]['class']) ? $editColumns[$colName]['class'] : 'left' }}">{{ $colName }}</th>
-				    				@else
-					    				<th class="left">{{ $colName }}</th>
-				    				@endif
-				    			@endforeach
-				    		</tr>
-			    		</thead>
-			    		<?php
-			    		$chunkRecordCount = ($limit == null || $limit > 300) ? 300 : $limit;
-						$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $grandTotalSkip, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr) {
-						?>
-			    		@foreach($results as $result)
-							<?php 
-								if ($limit != null && $ctr == $limit + 1) return false;
-								if ($groupByArr != []) {
-									$isOnSameGroup = true;
-									foreach ($groupByArr as $groupBy) {
-										if (isClosure($columns[$groupBy])) {
-					    					$thisGroupByData[$groupBy] = $columns[$groupBy]($result);
-					    				} else {
-					    					$thisGroupByData[$groupBy] = $result->$columns[$groupBy];
-					    				}
+		    	<table width="100%" class="table">
+		    		<thead>
+			    		<tr>
+			    			<th class="left">No</th>
+			    			@foreach ($columns as $colName => $colData)
+			    				@if (array_key_exists($colName, $editColumns))
+			    					<th class="{{ isset($editColumns[$colName]['class']) ? $editColumns[$colName]['class'] : 'left' }}">{{ $colName }}</th>
+			    				@else
+				    				<th class="left">{{ $colName }}</th>
+			    				@endif
+			    			@endforeach
+			    		</tr>
+		    		</thead>
+		    		<?php
+		    		$chunkRecordCount = ($limit == null || $limit > 300) ? 300 : $limit;
+					$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $grandTotalSkip, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr) {
+					?>
+		    		@foreach($results as $result)
+						<?php 
+							if ($limit != null && $ctr == $limit + 1) return false;
+							if ($groupByArr != []) {
+								$isOnSameGroup = true;
+								foreach ($groupByArr as $groupBy) {
+									if (isClosure($columns[$groupBy])) {
+				    					$thisGroupByData[$groupBy] = $columns[$groupBy]($result);
+				    				} else {
+				    					$thisGroupByData[$groupBy] = $result->$columns[$groupBy];
+				    				}
 
-					    				if (isset($currentGroupByData[$groupBy])) {
-					    					if ($thisGroupByData[$groupBy] != $currentGroupByData[$groupBy]) {
-					    						$isOnSameGroup = false;
-					    					}
-					    				}
+				    				if (isset($currentGroupByData[$groupBy])) {
+				    					if ($thisGroupByData[$groupBy] != $currentGroupByData[$groupBy]) {
+				    						$isOnSameGroup = false;
+				    					}
+				    				}
 
-					    				$currentGroupByData[$groupBy] = $thisGroupByData[$groupBy];
-					    			}
-
-					    			if ($isOnSameGroup === false) {
-			    						echo '<tr class="bg-black f-white">
-			    							<td colspan="' . $grandTotalSkip . '"><b>Grand Total</b></td>';
-											$dataFound = false;
-			    							foreach ($columns as $colName => $colData) {
-			    								if (array_key_exists($colName, $showTotalColumns)) {
-			    									if ($showTotalColumns[$colName] == 'point') {
-			    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
-			    									} elseif ($showTotalColumns[$colName] == 'idr') {
-			    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
-			    									}
-			    									$dataFound = true;
-			    								} else {
-			    									if ($dataFound) {
-				    									echo '<td></td>';
-				    								}
-			    								}
-			    							}
-			    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
-
-										// Reset No, Reset Grand Total
-			    						$no = 1;
-			    						foreach ($showTotalColumns as $showTotalColumn => $type) {
-			    							$total[$showTotalColumn] = 0;
-			    						}
-			    						$isOnSameGroup = true;
-			    					}
+				    				$currentGroupByData[$groupBy] = $thisGroupByData[$groupBy];
 				    			}
-							?>
-				    		<tr align="center" class="{{ ($no % 2 == 0) ? 'even' : 'odd' }}">
-				    			<td class="left">{{ $no }}</td>
-				    			@foreach ($columns as $colName => $colData)
-				    				<?php 
-					    				$class = 'left';
-					    				// Check Edit Column to manipulate class & Data
-					    				if (isClosure($colData)) {
-					    					$generatedColData = $colData($result);
-					    				} else {
-					    					$generatedColData = $result->$colData;
-					    				}
-					    				$displayedColValue = $generatedColData;
-					    				if (array_key_exists($colName, $editColumns)) {
-					    					if (isset($editColumns[$colName]['class'])) {
-					    						$class = $editColumns[$colName]['class'];
-					    					} 
 
-					    					if (isset($editColumns[$colName]['displayAs']) && isClosure($editColumns[$colName]['displayAs'])) {
-					    						$displayedColValue = $editColumns[$colName]['displayAs']($result);
-					    					} elseif (isset($editColumns[$colName]['displayAs']) && !isClosure($editColumns[$colName]['displayAs'])) {
-					    						$displayedColValue = $editColumns[$colName]['displayAs'];
-					    					}
-					    				}
+				    			if ($isOnSameGroup === false) {
+		    						echo '<tr class="bg-black f-white">
+		    							<td colspan="' . $grandTotalSkip . '"><b>Grand Total</b></td>';
+										$dataFound = false;
+		    							foreach ($columns as $colName => $colData) {
+		    								if (array_key_exists($colName, $showTotalColumns)) {
+		    									if ($showTotalColumns[$colName] == 'point') {
+		    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
+		    									} elseif ($showTotalColumns[$colName] == 'idr') {
+		    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
+		    									}
+		    									$dataFound = true;
+		    								} else {
+		    									if ($dataFound) {
+			    									echo '<td></td>';
+			    								}
+		    								}
+		    							}
+		    						echo '</tr>';//<tr style="height: 10px;"><td colspan="99">&nbsp;</td></tr>';
 
-					    				if (array_key_exists($colName, $showTotalColumns)) {
-					    					$total[$colName] += $generatedColData;
-					    				}
-				    				?>
-				    				<td class="{{ $class }}">{{ $displayedColValue }}</td>
-				    			@endforeach
-				    		</tr>
-			    			<?php $ctr++; $no++; ?>
-			    		@endforeach
-						<?php }); ?>
-						@if ($showTotalColumns != [] && $ctr > 1)
-							<tr class="bg-black f-white">
-								<td colspan="{{ $grandTotalSkip }}"><b>Grand Total</b></td> {{-- For Number --}}
-								<?php $dataFound = false; ?>
-								@foreach ($columns as $colName => $colData)
-									@if (array_key_exists($colName, $showTotalColumns))
-										<?php $dataFound = true; ?>
-										@if ($showTotalColumns[$colName] == 'point')
-											<td class="right"><b>{{ thousandSeparator($total[$colName]) }}</b></td>
-										@elseif ($showTotalColumns[$colName] == 'idr')
-											<td class="right"><b>IDR {{ thousandSeparator($total[$colName]) }}</b></td>
-										@endif
-									@else
-										@if ($dataFound)
-											<td></td>
-										@endif
+									// Reset No, Reset Grand Total
+		    						$no = 1;
+		    						foreach ($showTotalColumns as $showTotalColumn => $type) {
+		    							$total[$showTotalColumn] = 0;
+		    						}
+		    						$isOnSameGroup = true;
+		    					}
+			    			}
+						?>
+			    		<tr align="center" class="{{ ($no % 2 == 0) ? 'even' : 'odd' }}">
+			    			<td class="left">{{ $no }}</td>
+			    			@foreach ($columns as $colName => $colData)
+			    				<?php 
+				    				$class = 'left';
+				    				// Check Edit Column to manipulate class & Data
+				    				if (isClosure($colData)) {
+				    					$generatedColData = $colData($result);
+				    				} else {
+				    					$generatedColData = $result->$colData;
+				    				}
+				    				$displayedColValue = $generatedColData;
+				    				if (array_key_exists($colName, $editColumns)) {
+				    					if (isset($editColumns[$colName]['class'])) {
+				    						$class = $editColumns[$colName]['class'];
+				    					} 
+
+				    					if (isset($editColumns[$colName]['displayAs']) && isClosure($editColumns[$colName]['displayAs'])) {
+				    						$displayedColValue = $editColumns[$colName]['displayAs']($result);
+				    					} elseif (isset($editColumns[$colName]['displayAs']) && !isClosure($editColumns[$colName]['displayAs'])) {
+				    						$displayedColValue = $editColumns[$colName]['displayAs'];
+				    					}
+				    				}
+
+				    				if (array_key_exists($colName, $showTotalColumns)) {
+				    					$total[$colName] += $generatedColData;
+				    				}
+			    				?>
+			    				<td class="{{ $class }}">{{ $displayedColValue }}</td>
+			    			@endforeach
+			    		</tr>
+		    			<?php $ctr++; $no++; ?>
+		    		@endforeach
+					<?php }); ?>
+					@if ($showTotalColumns != [] && $ctr > 1)
+						<tr class="bg-black f-white">
+							<td colspan="{{ $grandTotalSkip }}"><b>Grand Total</b></td> {{-- For Number --}}
+							<?php $dataFound = false; ?>
+							@foreach ($columns as $colName => $colData)
+								@if (array_key_exists($colName, $showTotalColumns))
+									<?php $dataFound = true; ?>
+									@if ($showTotalColumns[$colName] == 'point')
+										<td class="right"><b>{{ thousandSeparator($total[$colName]) }}</b></td>
+									@elseif ($showTotalColumns[$colName] == 'idr')
+										<td class="right"><b>IDR {{ thousandSeparator($total[$colName]) }}</b></td>
 									@endif
-								@endforeach
-							</tr>
-						@endif
-			    	</table>
-			    </div>
+								@else
+									@if ($dataFound)
+										<td></td>
+									@endif
+								@endif
+							@endforeach
+						</tr>
+					@endif
+		    	</table>
 			</div>
 		</div>
 	    <script type="text/php">
