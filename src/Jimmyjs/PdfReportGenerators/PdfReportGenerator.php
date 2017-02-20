@@ -100,8 +100,20 @@ class PdfReportGenerator
 		$showTotalColumns = $this->showTotalColumns;
 		$styles = $this->styles;
 
-		$pdf = PDF::loadView('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'editColumns', 'showTotalColumns', 'styles', 'query', 'limit', 'groupByArr', 'orientation'));
-		$pdf->setPaper($this->paper, $orientation);
+		$html = \View::make('pdf-report-generators::general-pdf-template', compact('headers', 'columns', 'editColumns', 'showTotalColumns', 'styles', 'query', 'limit', 'groupByArr', 'orientation'))->render();
+
+		try {
+			$pdf = \App::make('snappy.pdf.wrapper');
+		} catch (\ReflectionException $e) {
+			$pdf = \App::make('dompdf.wrapper');
+		}
+		$pdf->loadHTML($html)->setPaper($this->paper, $orientation);
+
+		if ($pdf instanceof \Barryvdh\Snappy\PdfWrapper) {
+			$pdf->setOption('footer-font-size', 10);
+			$pdf->setOption('footer-left', 'Page [page] of [topage]');
+			$pdf->setOption('footer-right', 'Date Printed: ' . date('d M Y H:i:s'));
+		}
 
 		return $pdf;
 	}

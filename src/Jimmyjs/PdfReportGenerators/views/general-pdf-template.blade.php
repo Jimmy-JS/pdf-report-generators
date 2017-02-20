@@ -4,8 +4,8 @@
 		<meta charset="UTF-8">
 		<style>
 			.wrapper {
-				margin: -20px;
-				padding: 0px 15px 20px;
+				margin: 0 -20px 0;
+				padding: 0 15px;
 			}
 		    .middle {
 		        text-align: center;
@@ -32,7 +32,8 @@
 		    	border-collapse:collapse;
 		    }
 			.page-break {
-			    page-break-after: always;
+		        page-break-after: always;
+		        page-break-inside: avoid;
 			}
 			tr.even {
 				background-color: #eff0f1;
