@@ -120,7 +120,8 @@
 		    		</thead>
 		    		<?php
 		    		$chunkRecordCount = ($limit == null || $limit > 300) ? 300 : $limit;
-					$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $grandTotalSkip, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr) {
+		    		$__env = isset($__env) ? $__env : null;
+					$query->chunk($chunkRecordCount, function($results) use(&$ctr, &$no, &$total, &$currentGroupByData, &$isOnSameGroup, $grandTotalSkip, $headers, $columns, $limit, $editColumns, $showTotalColumns, $groupByArr, $__env) {
 					?>
 		    		@foreach($results as $result)
 						<?php 
@@ -128,7 +129,7 @@
 							if ($groupByArr != []) {
 								$isOnSameGroup = true;
 								foreach ($groupByArr as $groupBy) {
-									if (isClosure($columns[$groupBy])) {
+									if (is_object($columns[$groupBy]) && $columns[$groupBy] instanceof Closure) {
 				    					$thisGroupByData[$groupBy] = $columns[$groupBy]($result);
 				    				} else {
 				    					$thisGroupByData[$groupBy] = $result->$columns[$groupBy];
@@ -150,9 +151,9 @@
 		    							foreach ($columns as $colName => $colData) {
 		    								if (array_key_exists($colName, $showTotalColumns)) {
 		    									if ($showTotalColumns[$colName] == 'point') {
-		    										echo '<td class="right"><b>' . thousandSeparator($total[$colName]) . '</b></td>';
+		    										echo '<td class="right"><b>' . number_format($total[$colName], 0, ',', '.') . '</b></td>';
 		    									} elseif ($showTotalColumns[$colName] == 'idr') {
-		    										echo '<td class="right"><b>IDR ' . thousandSeparator($total[$colName]) . '</b></td>';
+		    										echo '<td class="right"><b>IDR ' . number_format($total[$colName], 0, ',', '.') . '</b></td>';
 		    									}
 		    									$dataFound = true;
 		    								} else {
@@ -178,7 +179,7 @@
 			    				<?php 
 				    				$class = 'left';
 				    				// Check Edit Column to manipulate class & Data
-				    				if (isClosure($colData)) {
+				    				if (is_object($colData) && $colData instanceof Closure) {
 				    					$generatedColData = $colData($result);
 				    				} else {
 				    					$generatedColData = $result->$colData;
@@ -189,10 +190,11 @@
 				    						$class = $editColumns[$colName]['class'];
 				    					} 
 
-				    					if (isset($editColumns[$colName]['displayAs']) && isClosure($editColumns[$colName]['displayAs'])) {
-				    						$displayedColValue = $editColumns[$colName]['displayAs']($result);
-				    					} elseif (isset($editColumns[$colName]['displayAs']) && !isClosure($editColumns[$colName]['displayAs'])) {
-				    						$displayedColValue = $editColumns[$colName]['displayAs'];
+				    					$displayAs = $editColumns[$colName]['displayAs'];
+				    					if (isset($displayAs) && (is_object($displayAs) && $displayAs instanceof Closure)) {
+				    						$displayedColValue = $displayAs($result);
+				    					} elseif (isset($displayAs) && !(is_object($displayAs) && $displayAs instanceof Closure)) {
+				    						$displayedColValue = $displayAs;
 				    					}
 				    				}
 
@@ -214,9 +216,9 @@
 								@if (array_key_exists($colName, $showTotalColumns))
 									<?php $dataFound = true; ?>
 									@if ($showTotalColumns[$colName] == 'point')
-										<td class="right"><b>{{ thousandSeparator($total[$colName]) }}</b></td>
+										<td class="right"><b>{{ number_format($total[$colName], 0, ',', '.') }}</b></td>
 									@elseif ($showTotalColumns[$colName] == 'idr')
-										<td class="right"><b>IDR {{ thousandSeparator($total[$colName]) }}</b></td>
+										<td class="right"><b>IDR {{ number_format($total[$colName], 0, ',', '.') }}</b></td>
 									@endif
 								@else
 									@if ($dataFound)
