@@ -190,12 +190,14 @@
 				    						$class = $editColumns[$colName]['class'];
 				    					} 
 
-				    					$displayAs = $editColumns[$colName]['displayAs'];
-				    					if (isset($displayAs) && (is_object($displayAs) && $displayAs instanceof Closure)) {
-				    						$displayedColValue = $displayAs($result);
-				    					} elseif (isset($displayAs) && !(is_object($displayAs) && $displayAs instanceof Closure)) {
-				    						$displayedColValue = $displayAs;
-				    					}
+				    					if (isset($editColumns[$colName]['displayAs'])) {
+				    						$displayAs = $editColumns[$colName]['displayAs'];
+					    					if (is_object($displayAs) && $displayAs instanceof Closure) {
+					    						$displayedColValue = $displayAs($result);
+					    					} elseif (!(is_object($displayAs) && $displayAs instanceof Closure)) {
+					    						$displayedColValue = $displayAs;
+					    					}
+					    				}
 				    				}
 
 				    				if (array_key_exists($colName, $showTotalColumns)) {
