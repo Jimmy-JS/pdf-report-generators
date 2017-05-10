@@ -1,5 +1,8 @@
-# Laravel 5 - Pdf Report Generators
-Rapidly Generate Simple Pdf Report on Laravel 5 (Using [barryvdh/laravel-dompdf](https://github.com/barryvdh/laravel-dompdf))
+# This package is deprecated!
+Please go to https://github.com/Jimmy-JS/laravel-report-generator instead!
+
+# Laravel - Pdf Report Generators
+Rapidly Generate Simple Pdf Report on Laravel (Using [barryvdh/laravel-dompdf](https://github.com/barryvdh/laravel-dompdf))
 
 This package provides a simple pdf generators to speed up your workflow
 
